@@ -4,6 +4,7 @@ import {
   InternalServerErrorException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
+import { User } from "src/user/entities/user.entity";
 import { Repository } from "typeorm";
 import { CreateAuthDto } from "./dto/create-auth.dto";
 import { Auth } from "./entities/auth.entity";
@@ -14,7 +15,9 @@ const bcrypt = require("bcrypt");
 export class AuthService {
   constructor(
     @InjectRepository(Auth)
-    private readonly authRepository: Repository<Auth>
+    private readonly authRepository: Repository<Auth>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>
   ) {}
 
   async findOne(username: string) {
@@ -47,9 +50,11 @@ export class AuthService {
             })
           );
         } else {
+          const profile = await this.userRepository.save({});
           const user = await this.authRepository.save({
             username,
             password: hash,
+            user: profile,
           });
           const token = this.generateToken(username);
           resolve({ user: user.username, token });

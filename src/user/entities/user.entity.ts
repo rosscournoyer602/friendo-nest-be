@@ -1,12 +1,14 @@
-import { Column, Entity, OneToOne, PrimaryGeneratedColumn } from "typeorm";
-import { Auth } from "../../auth/entities/auth.entity";
+import { Column, Entity, ManyToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Chat } from "../../chat/entities/chat.entity";
 
 @Entity()
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @OneToOne(() => Auth)
-  @Column({ unique: true })
-  username: string;
+  @Column({ nullable: true })
+  name: string;
+
+  @ManyToMany((type) => Chat, (chat) => chat.users)
+  chats: Chat[];
 }
