@@ -5,7 +5,7 @@ import {
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { User } from "src/user/entities/user.entity";
-import { Repository } from "typeorm";
+import { Connection, Repository } from "typeorm";
 import { CreateAuthDto } from "./dto/create-auth.dto";
 import { Auth } from "./entities/auth.entity";
 const jwt = require("jwt-simple");
@@ -17,7 +17,8 @@ export class AuthService {
     @InjectRepository(Auth)
     private readonly authRepository: Repository<Auth>,
     @InjectRepository(User)
-    private readonly userRepository: Repository<User>
+    private readonly userRepository: Repository<User>,
+    private readonly connection: Connection
   ) {}
 
   async findOne(username: string) {
@@ -42,24 +43,36 @@ export class AuthService {
           })
         );
       }
-      bcrypt.hash(user.password, 10, async (err, hash) => {
-        if (err) {
-          reject(
-            new InternalServerErrorException({
-              description: "Error occured when hashing user password",
-            })
-          );
-        } else {
-          const profile = await this.userRepository.save({});
-          const user = await this.authRepository.save({
-            username,
-            password: hash,
-            user: profile,
-          });
-          const token = this.generateToken(username);
-          resolve({ user: user.username, token });
-        }
-      });
+      if (!existingUser) {
+        bcrypt.hash(user.password, 10, async (err, hash) => {
+          if (err) {
+            reject(
+              new InternalServerErrorException({
+                description: "Error occured when hashing user password",
+              })
+            );
+          } else {
+            const queryRunner = this.connection.createQueryRunner();
+            await queryRunner.connect();
+            await queryRunner.startTransaction();
+            try {
+              const profile = await this.userRepository.save({});
+              const user = await this.authRepository.save({
+                username,
+                password: hash,
+                user: profile,
+              });
+              const token = this.generateToken(username);
+              resolve({ user: user.username, token });
+            } catch (err) {
+              await queryRunner.rollbackTransaction();
+              reject(new InternalServerErrorException());
+            } finally {
+              await queryRunner.release();
+            }
+          }
+        });
+      }
     });
   }
 

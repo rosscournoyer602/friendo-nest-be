@@ -1,5 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
+import { type } from "os";
 import { Repository } from "typeorm";
 import { User } from "./entities/user.entity";
 
@@ -9,6 +10,13 @@ export class UserService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>
   ) {}
+
+  async findByIds(ids: any) {
+    return await this.userRepository
+      .createQueryBuilder("user")
+      .where("user.id IN (:...ids)", { ids })
+      .getMany();
+  }
 
   async findAll() {
     return await this.userRepository.find();

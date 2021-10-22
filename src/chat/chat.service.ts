@@ -1,30 +1,39 @@
-import { Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { User } from "src/user/entities/user.entity";
-import { Repository } from "typeorm";
+import { UserService } from "src/user/user.service";
+import { Connection, Repository } from "typeorm";
 import { Chat } from "./entities/chat.entity";
 
 @Injectable()
 export class ChatService {
   constructor(
     @InjectRepository(Chat)
-    private readonly chatRepository: Repository<Chat>
+    private readonly chatRepository: Repository<Chat>,
+    private readonly userService: UserService
   ) {}
 
   async findAll() {
-    return await this.chatRepository.find();
+    return await this.chatRepository.find({ relations: ["users"] });
   }
 
-  async findOne(id: string) {
-    return await this.chatRepository.findOne(id);
+  async findChatsByUser(id: string) {
+    // TODO - test this
+    return await this.chatRepository
+      .createQueryBuilder("chat")
+      .leftJoinAndSelect("chat.users", "user")
+      .where("chat.user.id = :id", { id });
   }
 
   async create(users: User[]) {
-    return await this.chatRepository.save({ users });
-  }
-
-  async update(id: number) {
-    const currentChat = await this.chatRepository.preload({ id });
-    return await this.chatRepository.save(currentChat);
+    if (users.length <= 1) {
+      throw new BadRequestException({
+        description: "Chat must contain at least two users",
+      });
+    }
+    const usersData = await this.userService.findByIds(users);
+    return await this.chatRepository.save({
+      users: usersData,
+    });
   }
 }

@@ -1,5 +1,7 @@
-import { Controller, Get, Param, Patch } from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Post } from "@nestjs/common";
+import { User } from "src/user/entities/user.entity";
 import { ChatService } from "./chat.service";
+import { CreateChatDto } from "./dto/create-chat.dto";
 
 @Controller("chat")
 export class ChatController {
@@ -11,12 +13,18 @@ export class ChatController {
   }
 
   @Get(":id")
-  async findOne(@Param("id") id: string) {
-    return await this.chatService.findOne(id);
+  async findChatsByUserId(@Param("id") id: string) {
+    return await this.chatService.findChatsByUser(id);
   }
 
-  @Patch(":id")
-  async update(@Param("id") id: number) {
-    return await this.chatService.update(id);
+  @Post("create")
+  async update(@Body() createChatDto: CreateChatDto) {
+    const { users } = createChatDto;
+    console.log("USERS", users);
+    try {
+      return await this.chatService.create(users);
+    } catch (err) {
+      return err;
+    }
   }
 }
