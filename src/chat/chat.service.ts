@@ -14,7 +14,7 @@ export class ChatService {
   ) {}
 
   async findAll() {
-    return await this.chatRepository.find({ relations: ["users"] });
+    return await this.chatRepository.find({ relations: ["users", "messages"] });
   }
 
   async findChatsByUser(id: string) {
@@ -22,7 +22,8 @@ export class ChatService {
     return await this.chatRepository
       .createQueryBuilder("chat")
       .leftJoinAndSelect("chat.users", "user")
-      .where("chat.user.id = :id", { id });
+      .where("user.id = :id", { id })
+      .getMany();
   }
 
   async create(users: User[]) {

@@ -20,7 +20,6 @@ export class ChatController {
   @Post("create")
   async update(@Body() createChatDto: CreateChatDto) {
     const { users } = createChatDto;
-    console.log("USERS", users);
     try {
       return await this.chatService.create(users);
     } catch (err) {
