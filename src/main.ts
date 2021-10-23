@@ -7,8 +7,8 @@ import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const config = new DocumentBuilder()
-    .setTitle("Nest Boilerplate")
-    .setDescription("Basic Nestjs project")
+    .setTitle("Friendo")
+    .setDescription("A chat app")
     .setVersion("1.0")
     .addTag("1.0")
     .build();
@@ -22,7 +22,7 @@ async function bootstrap() {
       transformOptions: {
         enableImplicitConversion: true,
       },
-    }),
+    })
   );
   app.useGlobalGuards(new ApiKeyGuard());
   await app.listen(3000);

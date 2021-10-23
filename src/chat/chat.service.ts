@@ -18,7 +18,6 @@ export class ChatService {
   }
 
   async findChatsByUser(id: string) {
-    // TODO - test this
     return await this.chatRepository
       .createQueryBuilder("chat")
       .leftJoinAndSelect("chat.users", "user")

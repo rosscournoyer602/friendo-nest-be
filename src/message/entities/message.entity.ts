@@ -2,10 +2,11 @@ import { User } from "src/user/entities/user.entity";
 import {
   Column,
   Entity,
-  OneToOne,
   ManyToOne,
   PrimaryGeneratedColumn,
-  JoinColumn,
+  ManyToMany,
+  JoinTable,
+  OneToMany,
 } from "typeorm";
 import { Chat } from "../../chat/entities/chat.entity";
 
@@ -14,8 +15,7 @@ export class Message {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @OneToOne((type) => User)
-  @JoinColumn()
+  @ManyToOne((type) => User)
   sender: User;
 
   @ManyToOne((type) => Chat, (chat) => chat.messages)

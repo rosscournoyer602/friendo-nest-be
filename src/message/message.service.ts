@@ -1,6 +1,7 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Chat } from "src/chat/entities/chat.entity";
+import { User } from "src/user/entities/user.entity";
 import { Repository } from "typeorm";
 import { Message } from "./entities/message.entity";
 
@@ -19,8 +20,14 @@ export class MessageService {
     return await this.messageRepository.findOne(id);
   }
 
-  async create(chat: Chat) {
-    return await this.messageRepository.save({ chat });
+  async create(sender: User, chat: Chat, content: string) {
+    const newMessage = await this.messageRepository.create({
+      sender,
+      chat,
+      content,
+    });
+    console.log("CREATE MESSAGE");
+    this.messageRepository.save(newMessage);
   }
 
   async update(id: number) {
